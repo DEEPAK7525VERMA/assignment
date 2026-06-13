@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/product.dart';
+import '../viewmodels/product_viewmodel.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
@@ -12,12 +14,27 @@ class ProductDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(product.title),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          Consumer<ProductViewModel>(
+            builder: (context, viewModel, child) {
+              final isFavorite = viewModel.isInWishlist(product.id);
+              return IconButton(
+                icon: Icon(
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: isFavorite ? Colors.red : null,
+                ),
+                onPressed: () {
+                  viewModel.toggleWishlist(product.id);
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Image
             Image.network(
               product.thumbnail,
               width: double.infinity,
@@ -31,7 +48,6 @@ class ProductDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title and Price Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,8 +68,6 @@ class ProductDetailScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  
-                  // Rating
                   Row(
                     children: [
                       const Icon(Icons.star, color: Colors.amber, size: 24),
@@ -65,8 +79,6 @@ class ProductDetailScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  
-                  // Description
                   Text(
                     'Description',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),

@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '/viewmodels/product_viewmodel.dart';
+import '../viewmodels/product_viewmodel.dart';
 import 'product_detail_screen.dart';
+
 class Debouncer {
   final int milliseconds;
   Timer? _timer;
@@ -17,7 +18,6 @@ class Debouncer {
   }
 }
 
-
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
 
@@ -28,21 +28,18 @@ class ProductListScreen extends StatefulWidget {
 class _ProductListScreenState extends State<ProductListScreen> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
-  final Debouncer _debouncer = Debouncer(milliseconds: 500); // 500ms delay
+  final Debouncer _debouncer = Debouncer(milliseconds: 500);
 
   @override
   void initState() {
     super.initState();
     
-    // Initial data fetch
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductViewModel>().fetchProducts(refresh: true);
     });
 
-    // Pagination Listener: Triggers when we scroll to the bottom
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-      
         context.read<ProductViewModel>().fetchProducts();
       }
     });
@@ -64,7 +61,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
       ),
       body: Column(
         children: [
-          // Search Bar
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: TextField(
@@ -78,7 +74,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
               onChanged: (value) {
-                // Execute search only after user stops typing for 500ms
                 _debouncer.run(() {
                   context.read<ProductViewModel>().searchProducts(value);
                 });
@@ -86,16 +81,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           ),
           
-          // Product List
           Expanded(
             child: Consumer<ProductViewModel>(
               builder: (context, viewModel, child) {
-                // Show loading spinner if it's the very first load
                 if (viewModel.isLoading && viewModel.products.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                // Show a message if no products match the search
                 if (viewModel.products.isEmpty) {
                   return const Center(child: Text('No products found.'));
                 }
@@ -104,7 +96,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   controller: _scrollController,
                   itemCount: viewModel.products.length + (viewModel.hasMore ? 1 : 0),
                   itemBuilder: (context, index) {
-                    // If we are at the end of the list, show a loading spinner at the bottom
                     if (index == viewModel.products.length) {
                       return const Padding(
                         padding: EdgeInsets.all(16.0),
@@ -134,9 +125,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         subtitle: Text('\$${product.price.toStringAsFixed(2)}'),
-                        trailing: const Icon(Icons.chevron_right),
+                        trailing: IconButton(
+                          icon: Icon(
+                            viewModel.isInWishlist(product.id) 
+                                ? Icons.favorite 
+                                : Icons.favorite_border,
+                            color: viewModel.isInWishlist(product.id) 
+                                ? Colors.red 
+                                : Colors.grey,
+                          ),
+                          onPressed: () {
+                            viewModel.toggleWishlist(product.id);
+                          },
+                        ),
                         onTap: () {
-                         Navigator.push(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => ProductDetailScreen(product: product),

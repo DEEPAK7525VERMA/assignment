@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import '/models/product.dart';
-import '/services/api_service.dart';
+import '../models/product.dart';
+import '../services/api_service.dart';
+import '../services/local_storage_service.dart';
 
 class ProductViewModel extends ChangeNotifier {
   final ApiService _apiService = ApiService();
-  
+  final LocalStorageService _storageService = LocalStorageService();
+
   List<Product> _products = [];
+  List<int> _wishlistIds = [];
+  
   bool _isLoading = false;
   bool _hasMore = true;
   int _skip = 0;
@@ -13,8 +17,32 @@ class ProductViewModel extends ChangeNotifier {
   String _searchQuery = '';
 
   List<Product> get products => _products;
+  List<int> get wishlistIds => _wishlistIds;
   bool get isLoading => _isLoading;
   bool get hasMore => _hasMore;
+
+  ProductViewModel() {
+    _loadWishlist();
+  }
+
+  Future<void> _loadWishlist() async {
+    _wishlistIds = await _storageService.getWishlist();
+    notifyListeners();
+  }
+
+  bool isInWishlist(int productId) {
+    return _wishlistIds.contains(productId);
+  }
+
+  Future<void> toggleWishlist(int productId) async {
+    if (_wishlistIds.contains(productId)) {
+      _wishlistIds.remove(productId);
+    } else {
+      _wishlistIds.add(productId);
+    }
+    await _storageService.saveWishlist(_wishlistIds);
+    notifyListeners();
+  }
 
   Future<void> fetchProducts({bool refresh = false}) async {
     if (_isLoading || (!_hasMore && !refresh)) return;
@@ -26,7 +54,6 @@ class ProductViewModel extends ChangeNotifier {
     }
 
     _isLoading = true;
-   
     Future.microtask(() => notifyListeners());
 
     try {
