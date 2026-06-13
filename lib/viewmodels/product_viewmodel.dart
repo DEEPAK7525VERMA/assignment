@@ -15,11 +15,17 @@ class ProductViewModel extends ChangeNotifier {
   int _skip = 0;
   final int _limit = 10;
   String _searchQuery = '';
+  
+  String _selectedCategory = 'All';
+  // A predefined list of some categories from DummyJSON
+  final List<String> _categories = ['All', 'beauty', 'fragrances', 'furniture', 'groceries'];
 
   List<Product> get products => _products;
   List<int> get wishlistIds => _wishlistIds;
   bool get isLoading => _isLoading;
   bool get hasMore => _hasMore;
+  String get selectedCategory => _selectedCategory;
+  List<String> get categories => _categories;
 
   ProductViewModel() {
     _loadWishlist();
@@ -44,6 +50,13 @@ class ProductViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setCategory(String category) {
+    if (_selectedCategory == category) return;
+    _selectedCategory = category;
+    _searchQuery = ''; // Clear search when switching categories
+    fetchProducts(refresh: true);
+  }
+
   Future<void> fetchProducts({bool refresh = false}) async {
     if (_isLoading || (!_hasMore && !refresh)) return;
 
@@ -60,7 +73,8 @@ class ProductViewModel extends ChangeNotifier {
       final newProducts = await _apiService.fetchProducts(
         skip: _skip, 
         limit: _limit, 
-        query: _searchQuery
+        query: _searchQuery,
+        category: _selectedCategory,
       );
 
       if (newProducts.length < _limit) {
