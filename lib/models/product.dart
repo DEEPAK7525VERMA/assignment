@@ -20,7 +20,7 @@ class Product {
       id: json['id'],
       title: json['title'],
       description: json['description'],
-      // DummyJSON sometimes returns ints for price/rating, so we parse to double
+     
       price: json['price']?.toDouble() ?? 0.0,
       rating: json['rating']?.toDouble() ?? 0.0,
       thumbnail: json['thumbnail'],

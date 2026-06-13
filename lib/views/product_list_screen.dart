@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/product_viewmodel.dart';
-
-// 1. Debouncer Utility (Part 3, Q3 of the assignment)
+import '/viewmodels/product_viewmodel.dart';
+import 'product_detail_screen.dart';
 class Debouncer {
   final int milliseconds;
   Timer? _timer;
@@ -18,7 +17,7 @@ class Debouncer {
   }
 }
 
-// 2. The Main Screen Widget
+
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
 
@@ -43,7 +42,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     // Pagination Listener: Triggers when we scroll to the bottom
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-        // We are close to the bottom, load more!
+      
         context.read<ProductViewModel>().fetchProducts();
       }
     });
@@ -137,7 +136,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         subtitle: Text('\$${product.price.toStringAsFixed(2)}'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
-                          // TODO: Navigate to Product Detail Screen
+                         Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductDetailScreen(product: product),
+                            ),
+                          );
                         },
                       ),
                     );

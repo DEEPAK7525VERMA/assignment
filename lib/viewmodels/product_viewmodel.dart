@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/product.dart';
-import '../services/api_service.dart';
+import '/models/product.dart';
+import '/services/api_service.dart';
 
 class ProductViewModel extends ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -26,7 +26,7 @@ class ProductViewModel extends ChangeNotifier {
     }
 
     _isLoading = true;
-    // Notify listeners so the UI can show a loading spinner
+   
     Future.microtask(() => notifyListeners());
 
     try {
