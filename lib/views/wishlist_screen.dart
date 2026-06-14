@@ -10,16 +10,15 @@ class WishlistScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        title: const Text('My Wishlist', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        title: const Text('My Wishlist', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Consumer<ProductViewModel>(
         builder: (context, viewModel, child) {
-          // Now rendering directly from the self-contained wishlist memory
           final wishlistedProducts = viewModel.wishlistItems;
 
           if (wishlistedProducts.isEmpty) {
@@ -29,30 +28,30 @@ class WishlistScreen extends StatelessWidget {
                 children: [
                   Lottie.network('https://lottie.host/29515082-f513-43b6-96b4-21c6ff9bb64a/Hn8qE41eC7.json', width: 200),
                   const SizedBox(height: 16),
-                  const Text('Your wishlist is empty.', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                  const Text('Your wishlist is empty.', style: TextStyle(fontSize: 18, color: Colors.white54)),
                 ],
               ),
             );
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             itemCount: wishlistedProducts.length,
             itemBuilder: (context, index) {
               final product = wishlistedProducts[index];
               return Container(
-                margin: const EdgeInsets.only(bottom: 12),
+                margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(24),
                   boxShadow: [
-                    BoxShadow(color: Colors.grey.withOpacity(0.1), spreadRadius: 1, blurRadius: 10, offset: const Offset(0, 4)),
+                    BoxShadow(color: Colors.black.withOpacity(0.2), spreadRadius: 1, blurRadius: 10, offset: const Offset(0, 5)),
                   ],
                 ),
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(24),
                     onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => ProductDetailScreen(product: product)));
                     },
@@ -61,12 +60,12 @@ class WishlistScreen extends StatelessWidget {
                       child: Row(
                         children: [
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                             child: Container(
-                              color: Colors.grey[100],
+                              color: Colors.white,
                               child: Image.network(
-                                product.thumbnail, width: 80, height: 80, fit: BoxFit.cover,
-                                errorBuilder: (context, error, stack) => const Icon(Icons.image_not_supported, size: 80, color: Colors.grey),
+                                product.thumbnail, width: 70, height: 70, fit: BoxFit.contain,
+                                errorBuilder: (context, error, stack) => const Icon(Icons.image_not_supported, size: 70, color: Colors.grey),
                               ),
                             ),
                           ),
@@ -75,7 +74,7 @@ class WishlistScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(product.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text(product.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
                                 const SizedBox(height: 8),
                                 Text('\$${product.price.toStringAsFixed(2)}', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
                               ],
@@ -83,7 +82,7 @@ class WishlistScreen extends StatelessWidget {
                           ),
                           IconButton(
                             icon: const Icon(Icons.favorite, color: Colors.redAccent),
-                            onPressed: () => viewModel.toggleWishlist(product), // Now passing full product
+                            onPressed: () => viewModel.toggleWishlist(product),
                           ),
                         ],
                       ),

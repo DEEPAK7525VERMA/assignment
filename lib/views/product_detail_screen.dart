@@ -11,30 +11,41 @@ class ProductDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 350.0,
+            expandedHeight: 350.0, // Reduced from 400 to fit small screens better
             pinned: true,
-            backgroundColor: Colors.white,
-            iconTheme: const IconThemeData(color: Colors.black87),
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            // FIX 1: Custom Back Button with a dark circular background
+            leading: Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
             actions: [
               Consumer<ProductViewModel>(
                 builder: (context, viewModel, child) {
                   final isFavorite = viewModel.isInWishlist(product.id);
                   return Container(
-                    margin: const EdgeInsets.only(right: 8),
+                    margin: const EdgeInsets.only(right: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
                       icon: Icon(
                         isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.redAccent : Colors.black87,
+                        color: isFavorite ? Colors.redAccent : Colors.white,
                       ),
-                      onPressed: () => viewModel.toggleWishlist(product), // Now passing full product
+                      onPressed: () => viewModel.toggleWishlist(product),
                     ),
                   );
                 },
@@ -44,12 +55,11 @@ class ProductDetailScreen extends StatelessWidget {
               background: Hero(
                 tag: 'product_image_${product.id}',
                 child: Container(
-                  color: Colors.white,
+                  padding: const EdgeInsets.only(bottom: 40), 
+                  color: Colors.white, 
                   child: Image.network(
                     product.thumbnail,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => 
-                        const Center(child: Icon(Icons.image_not_supported, size: 100, color: Colors.grey)),
+                    fit: BoxFit.contain, 
                   ),
                 ),
               ),
@@ -58,15 +68,19 @@ class ProductDetailScreen extends StatelessWidget {
           
           SliverToBoxAdapter(
             child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(40),
+                  topRight: Radius.circular(40),
                 ),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20, offset: const Offset(0, -5)),
+                ],
               ),
-              transform: Matrix4.translationValues(0.0, -20.0, 0.0),
-              padding: const EdgeInsets.all(24.0),
+              transform: Matrix4.translationValues(0.0, -40.0, 0.0), 
+              // FIX 2: Increased top padding to 48 so the text stays inside the dark container
+              padding: const EdgeInsets.only(top: 48.0, left: 24.0, right: 24.0, bottom: 24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -75,17 +89,8 @@ class ProductDetailScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          product.title,
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, height: 1.2),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        '\$${product.price.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
+                          product.title.toUpperCase(),
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, height: 1.2, color: Colors.white),
                         ),
                       ),
                     ],
@@ -94,18 +99,18 @@ class ProductDetailScreen extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.amber.withOpacity(0.2),
+                          color: Colors.amber.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 18),
-                            const SizedBox(width: 4),
+                            const Icon(Icons.star, color: Colors.amber, size: 20),
+                            const SizedBox(width: 6),
                             Text(
                               product.rating.toString(),
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.brown),
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.amber),
                             ),
                           ],
                         ),
@@ -114,15 +119,15 @@ class ProductDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
                   const Text(
-                    'About this item',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    'Description',
+                    style: TextStyle(fontSize: 14, color: Colors.white54, fontWeight: FontWeight.bold, letterSpacing: 1.5),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Text(
                     product.description,
-                    style: const TextStyle(fontSize: 16, color: Colors.black87, height: 1.6),
+                    style: const TextStyle(fontSize: 16, color: Colors.white70, height: 1.8),
                   ),
-                  const SizedBox(height: 100), 
+                  const SizedBox(height: 120), 
                 ],
               ),
             ),
@@ -130,42 +135,54 @@ class ProductDetailScreen extends StatelessWidget {
         ],
       ),
       bottomSheet: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           boxShadow: [
-            BoxShadow(color: Colors.grey.withOpacity(0.2), spreadRadius: 1, blurRadius: 10, offset: const Offset(0, -2)),
+            BoxShadow(color: Colors.black.withOpacity(0.3), spreadRadius: 1, blurRadius: 20, offset: const Offset(0, -5)),
           ],
         ),
-        child: SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: Consumer<ProductViewModel>(
-            builder: (context, viewModel, child) {
-              final quantity = viewModel.getCartQuantity(product.id);
-              
-              return ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                ),
-                onPressed: () {
-                  viewModel.addToCart(product); // Passing full product
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${product.title} added to cart'),
-                      duration: const Duration(seconds: 1),
-                      behavior: SnackBarBehavior.floating,
+        child: SafeArea(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '\$${product.price.toStringAsFixed(2)}',
+                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              Consumer<ProductViewModel>(
+                builder: (context, viewModel, child) {
+                  final quantity = viewModel.getCartQuantity(product.id);
+                  
+                  return ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      elevation: 8,
+                      shadowColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                    onPressed: () {
+                      viewModel.addToCart(product);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('${product.title} added to cart'),
+                          backgroundColor: Theme.of(context).colorScheme.surface,
+                          duration: const Duration(seconds: 1),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                    child: Text(
+                      quantity > 0 ? 'Add More ($quantity)' : 'Add to Cart', 
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   );
                 },
-                child: Text(
-                  quantity > 0 ? 'Add another to Cart ($quantity)' : 'Add to Cart', 
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              );
-            },
+              ),
+            ],
           ),
         ),
       ),
