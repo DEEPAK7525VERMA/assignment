@@ -14,7 +14,6 @@ class ProductDetailScreen extends StatelessWidget {
       backgroundColor: Colors.grey[50],
       body: CustomScrollView(
         slivers: [
-          // The beautiful collapsing App Bar
           SliverAppBar(
             expandedHeight: 350.0,
             pinned: true,
@@ -35,7 +34,7 @@ class ProductDetailScreen extends StatelessWidget {
                         isFavorite ? Icons.favorite : Icons.favorite_border,
                         color: isFavorite ? Colors.redAccent : Colors.black87,
                       ),
-                      onPressed: () => viewModel.toggleWishlist(product.id),
+                      onPressed: () => viewModel.toggleWishlist(product), // Now passing full product
                     ),
                   );
                 },
@@ -43,7 +42,7 @@ class ProductDetailScreen extends StatelessWidget {
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: Hero(
-                tag: 'product_image_${product.id}', // Must match the list screen tag
+                tag: 'product_image_${product.id}',
                 child: Container(
                   color: Colors.white,
                   child: Image.network(
@@ -57,7 +56,6 @@ class ProductDetailScreen extends StatelessWidget {
             ),
           ),
           
-          // The Content
           SliverToBoxAdapter(
             child: Container(
               decoration: const BoxDecoration(
@@ -67,7 +65,7 @@ class ProductDetailScreen extends StatelessWidget {
                   topRight: Radius.circular(30),
                 ),
               ),
-              transform: Matrix4.translationValues(0.0, -20.0, 0.0), // Overlaps the image slightly
+              transform: Matrix4.translationValues(0.0, -20.0, 0.0),
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,14 +122,13 @@ class ProductDetailScreen extends StatelessWidget {
                     product.description,
                     style: const TextStyle(fontSize: 16, color: Colors.black87, height: 1.6),
                   ),
-                  const SizedBox(height: 100), // Spacing for a bottom button
+                  const SizedBox(height: 100), 
                 ],
               ),
             ),
           ),
         ],
       ),
-      // A fake "Add to Cart" button just to make the UI look complete
       bottomSheet: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -143,14 +140,32 @@ class ProductDetailScreen extends StatelessWidget {
         child: SizedBox(
           width: double.infinity,
           height: 50,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-            ),
-            onPressed: () {},
-            child: const Text('Add to Cart', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          child: Consumer<ProductViewModel>(
+            builder: (context, viewModel, child) {
+              final quantity = viewModel.getCartQuantity(product.id);
+              
+              return ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                ),
+                onPressed: () {
+                  viewModel.addToCart(product); // Passing full product
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${product.title} added to cart'),
+                      duration: const Duration(seconds: 1),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                child: Text(
+                  quantity > 0 ? 'Add another to Cart ($quantity)' : 'Add to Cart', 
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              );
+            },
           ),
         ),
       ),

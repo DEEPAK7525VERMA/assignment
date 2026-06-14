@@ -8,7 +8,8 @@ class ProductViewModel extends ChangeNotifier {
   final LocalStorageService _storageService = LocalStorageService();
 
   List<Product> _products = [];
-  List<int> _wishlistIds = [];
+  List<Product> _wishlistItems = []; // Upgraded to hold full Product objects
+  List<CartItem> _cartItems = []; // Upgraded to hold CartItem objects
   
   bool _isLoading = false;
   bool _hasMore = true;
@@ -17,11 +18,11 @@ class ProductViewModel extends ChangeNotifier {
   String _searchQuery = '';
   
   String _selectedCategory = 'All';
-  // A predefined list of some categories from DummyJSON
   final List<String> _categories = ['All', 'beauty', 'fragrances', 'furniture', 'groceries'];
 
   List<Product> get products => _products;
-  List<int> get wishlistIds => _wishlistIds;
+  List<Product> get wishlistItems => _wishlistItems;
+  List<CartItem> get cartItems => _cartItems;
   bool get isLoading => _isLoading;
   bool get hasMore => _hasMore;
   String get selectedCategory => _selectedCategory;
@@ -29,31 +30,73 @@ class ProductViewModel extends ChangeNotifier {
 
   ProductViewModel() {
     _loadWishlist();
+    _loadCart();
   }
 
+  // --- WISHLIST LOGIC ---
   Future<void> _loadWishlist() async {
-    _wishlistIds = await _storageService.getWishlist();
+    _wishlistItems = await _storageService.getWishlist();
     notifyListeners();
   }
 
   bool isInWishlist(int productId) {
-    return _wishlistIds.contains(productId);
+    return _wishlistItems.any((item) => item.id == productId);
   }
 
-  Future<void> toggleWishlist(int productId) async {
-    if (_wishlistIds.contains(productId)) {
-      _wishlistIds.remove(productId);
+  Future<void> toggleWishlist(Product product) async {
+    if (isInWishlist(product.id)) {
+      _wishlistItems.removeWhere((item) => item.id == product.id);
     } else {
-      _wishlistIds.add(productId);
+      _wishlistItems.add(product);
     }
-    await _storageService.saveWishlist(_wishlistIds);
+    await _storageService.saveWishlist(_wishlistItems);
     notifyListeners();
   }
 
+  // --- CART LOGIC ---
+  Future<void> _loadCart() async {
+    _cartItems = await _storageService.getCart();
+    notifyListeners();
+  }
+
+  int getCartQuantity(int productId) {
+    final index = _cartItems.indexWhere((item) => item.product.id == productId);
+    return index >= 0 ? _cartItems[index].quantity : 0;
+  }
+
+  Future<void> addToCart(Product product) async {
+    final index = _cartItems.indexWhere((item) => item.product.id == product.id);
+    if (index >= 0) {
+      _cartItems[index].quantity++;
+    } else {
+      _cartItems.add(CartItem(product: product, quantity: 1));
+    }
+    await _storageService.saveCart(_cartItems);
+    notifyListeners();
+  }
+
+  Future<void> removeFromCart(int productId) async {
+    final index = _cartItems.indexWhere((item) => item.product.id == productId);
+    if (index < 0) return;
+
+    if (_cartItems[index].quantity > 1) {
+      _cartItems[index].quantity--;
+    } else {
+      _cartItems.removeAt(index);
+    }
+    await _storageService.saveCart(_cartItems);
+    notifyListeners();
+  }
+
+  double get cartTotal {
+    return _cartItems.fold(0, (sum, item) => sum + (item.product.price * item.quantity));
+  }
+
+  // --- FILTER & API LOGIC ---
   void setCategory(String category) {
     if (_selectedCategory == category) return;
     _selectedCategory = category;
-    _searchQuery = ''; // Clear search when switching categories
+    _searchQuery = ''; 
     fetchProducts(refresh: true);
   }
 

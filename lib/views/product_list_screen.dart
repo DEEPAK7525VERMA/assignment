@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:lottie/lottie.dart';
 import '../viewmodels/product_viewmodel.dart';
 import 'product_detail_screen.dart';
+import 'wishlist_screen.dart';
+import 'cart_screen.dart';
 
 class Debouncer {
   final int milliseconds;
@@ -49,16 +51,52 @@ class _ProductListScreenState extends State<ProductListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50], // Softer background
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         elevation: 0,
         title: const Text('Discover', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite, color: Colors.redAccent),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const WishlistScreen()));
+            },
+          ),
+          Consumer<ProductViewModel>(
+            builder: (context, viewModel, child) {
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.shopping_bag_outlined, color: Colors.black87),
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
+                    },
+                  ),
+                  if (viewModel.cartItems.isNotEmpty)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                        child: Text(
+                          '${viewModel.cartItems.length}',
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [
-          // Search Bar Design
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -81,7 +119,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           ),
           
-          // Filter Chips
           Container(
             color: Colors.white,
             height: 50,
@@ -123,14 +160,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           ),
 
-          // Main List
           Expanded(
             child: Consumer<ProductViewModel>(
               builder: (context, viewModel, child) {
                 if (viewModel.isLoading && viewModel.products.isEmpty) {
                   return Center(
                     child: Lottie.network(
-                      'https://lottie.host/8b487053-ec9c-4971-8c43-8515c0e1e69a/U0P9KxG5XG.json', // Sleek loading animation
+                      'https://lottie.host/8b487053-ec9c-4971-8c43-8515c0e1e69a/U0P9KxG5XG.json', 
                       width: 150,
                     ),
                   );
@@ -182,7 +218,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             padding: const EdgeInsets.all(12.0),
                             child: Row(
                               children: [
-                                // HERO ANIMATION TAG ADDED HERE
                                 Hero(
                                   tag: 'product_image_${product.id}',
                                   child: ClipRRect(
@@ -223,7 +258,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     viewModel.isInWishlist(product.id) ? Icons.favorite : Icons.favorite_border,
                                     color: viewModel.isInWishlist(product.id) ? Colors.redAccent : Colors.grey[400],
                                   ),
-                                  onPressed: () => viewModel.toggleWishlist(product.id),
+                                  onPressed: () => viewModel.toggleWishlist(product), // Now passing full product
                                 ),
                               ],
                             ),
